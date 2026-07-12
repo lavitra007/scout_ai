@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function LandingRedirect() {
+export default function AuthRedirect() {
   redirect("/");
 }
