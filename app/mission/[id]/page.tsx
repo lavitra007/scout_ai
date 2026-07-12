@@ -4,12 +4,18 @@ import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
 import { TopNav } from "@/components/TopNav";
 import { useMissions } from "@/lib/pipeline/mission-provider";
-import { useEffect } from "react";
+import { useEffect, use } from "react";
 import { ExecutiveLoading } from "@/components/mission/ExecutiveLoading";
 import { ExecutiveBrief } from "@/components/mission/ExecutiveBrief";
 import { DecisionTrace } from "@/components/mission/DecisionTrace";
 
-export default function MissionDetailPage({ params }: { params: { id: string } }) {
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+export default function MissionDetailPage({ params }: Props) {
+  const { id } = use(params);
+  
   const { 
     missions, 
     loadExecutiveBrief, 
@@ -19,7 +25,7 @@ export default function MissionDetailPage({ params }: { params: { id: string } }
     getExplainabilityContext 
   } = useMissions();
   
-  const mission = missions.find(m => m.id === params.id);
+  const mission = missions.find(m => m.id === id);
   
   useEffect(() => {
     if (mission && (mission.priority === "CRITICAL" || mission.priority === "HIGH")) {
