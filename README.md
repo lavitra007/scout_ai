@@ -144,28 +144,9 @@ Developer Experience
 - Zod
 - React Context
 - Modular Service Architecture
+  
 
-app/
-
-components/
-
-lib/
-
-executive/
-
-missions/
-
-monitor/
-
-opportunity/
-
-signals/
-
-profile/
-
-services/
-
-types/
+## Installation
 
 git clone https://github.com/lavitra007/scout_ai
 
