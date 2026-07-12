@@ -5,6 +5,8 @@ import { ExecutiveFilter } from "./executive-filter";
 import { ExecutiveContextBuilder } from "./executive-context";
 import { ExecutiveService } from "./executive-service";
 import { ExecutiveCache } from "./executive-cache";
+import { ExecutionLogger } from "@/lib/monitor/execution-logger";
+import { PipelineMessages } from "@/lib/monitor/pipeline-events";
 
 /**
  * The Scout Executive Intelligence Engine.
@@ -47,6 +49,8 @@ export class ExecutiveEngine {
     }
 
     // 3. Contextualize: Build the payload
+    ExecutionLogger.log("EXECUTIVE", "RUNNING", PipelineMessages.EXECUTIVE_START);
+    const execTime = Date.now();
     const contextString = this.contextBuilder.buildContextString(mission, context, profile);
 
     // 4. Execute: Run agentic search
@@ -56,8 +60,10 @@ export class ExecutiveEngine {
       // 5. Cache the result
       this.cache.set(mission.id, brief, mission.updatedAt);
       
+      ExecutionLogger.log("EXECUTIVE", "SUCCESS", PipelineMessages.EXECUTIVE_COMPLETE, undefined, Date.now() - execTime);
       return { mission, brief };
     } catch (error) {
+      ExecutionLogger.log("ERROR", "ERROR", `Agentic research failed for mission ${mission.id}`);
       console.error(`ExecutiveEngine failed to enrich mission ${mission.id}:`, error);
       return { mission, brief: null }; // Degrade gracefully
     }

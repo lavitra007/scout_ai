@@ -2,115 +2,96 @@
 
 import { motion } from "framer-motion";
 
-export function RightPanel() {
-  return (
-    <aside className="w-[360px] overflow-y-auto p-container-padding bg-background border-l border-border-muted">
-      {/* Summary Box */}
-      <div className="border border-border-muted mb-8 bg-surface-container-lowest">
-        <div className="bg-surface-container-high p-3 border-b border-border-muted">
-          <h3 className="font-label-caps text-label-caps text-primary">
-            {">"} TODAY'S_SUMMARY
-          </h3>
-        </div>
-        <div className="p-4 space-y-4">
-          <div className="flex justify-between items-end border-b border-border-muted pb-2">
-            <span className="font-code-sm text-code-sm text-text-muted">
-              THREATS_NEUTRALIZED
-            </span>
-            <span className="font-title-sm text-title-sm text-primary">
-              1,402
-            </span>
-          </div>
-          <div className="flex justify-between items-end border-b border-border-muted pb-2">
-            <span className="font-code-sm text-code-sm text-text-muted">
-              DATA_PROCESSED (TB)
-            </span>
-            <span className="font-title-sm text-title-sm text-primary">
-              847.3
-            </span>
-          </div>
-          <div className="flex justify-between items-end pb-2">
-            <span className="font-code-sm text-code-sm text-text-muted">
-              SYSTEM_INTEGRITY
-            </span>
-            <span className="font-title-sm text-title-sm text-terminal-lime">
-              OPTIMAL
-            </span>
-          </div>
-        </div>
-      </div>
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { executionMonitor } from "@/lib/monitor/execution-monitor";
+import { ExecutionEvent } from "@/types/execution";
 
-      {/* Latency Graph */}
-      <div className="border border-border-muted mb-8 bg-surface-container-lowest">
+export function RightPanel() {
+  const [events, setEvents] = useState<ExecutionEvent[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = executionMonitor.subscribe((latestEvents) => {
+      // In a real app we might only keep the last 50 events to prevent DOM bloat
+      setEvents(latestEvents.slice(-50));
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "SUCCESS": return "text-terminal-lime";
+      case "ERROR": return "text-error";
+      case "RUNNING": return "text-on-surface animate-pulse";
+      default: return "text-text-muted";
+    }
+  };
+
+  const getStatusBorder = (status: string) => {
+    switch (status) {
+      case "SUCCESS": return "border-terminal-lime";
+      case "ERROR": return "border-error";
+      case "RUNNING": return "border-on-surface animate-pulse";
+      default: return "border-border-muted";
+    }
+  };
+
+  return (
+    <aside className="w-[360px] overflow-y-auto p-container-padding bg-background border-l border-border-muted flex flex-col h-full">
+      
+      {/* Execution Console Header */}
+      <div className="border border-border-muted mb-4 bg-surface-container-lowest shrink-0">
         <div className="bg-surface-container-high p-3 border-b border-border-muted flex justify-between items-center">
-          <h3 className="font-label-caps text-label-caps text-primary">
-            {">"} NODE_LATENCY
+          <h3 className="font-label-caps text-label-caps text-primary flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm">
+              terminal
+            </span>
+            LIVE_EXECUTION_CONSOLE
           </h3>
           <span className="w-2 h-2 bg-terminal-lime pulse-node"></span>
         </div>
-        <div className="p-4">
-          <div className="h-32 border border-border-muted bg-surface-slate relative flex items-end px-2 pt-2 gap-1 overflow-hidden">
-            {/* Simulated Graph Bars */}
-            <div className="w-full bg-terminal-lime/20 h-[40%] border-t border-terminal-lime transition-all"></div>
-            <div className="w-full bg-terminal-lime/20 h-[60%] border-t border-terminal-lime transition-all"></div>
-            <div className="w-full bg-terminal-lime/20 h-[30%] border-t border-terminal-lime transition-all"></div>
-            <div className="w-full bg-terminal-lime/20 h-[80%] border-t border-terminal-lime transition-all"></div>
-            <div className="w-full bg-terminal-lime/20 h-[50%] border-t border-terminal-lime transition-all"></div>
-            <div className="w-full bg-terminal-lime/20 h-[90%] border-t border-terminal-lime transition-all"></div>
-            <div className="w-full bg-error/20 h-[95%] border-t border-error transition-all"></div>
-            <div className="w-full bg-terminal-lime/20 h-[45%] border-t border-terminal-lime transition-all"></div>
-            <div className="w-full bg-terminal-lime/20 h-[20%] border-t border-terminal-lime transition-all"></div>
-          </div>
-          <div className="flex justify-between mt-2">
-            <span className="font-code-sm text-code-sm text-text-muted">
-              AVG: 12ms
-            </span>
-            <span className="font-code-sm text-code-sm text-error">
-              PEAK: 142ms
-            </span>
-          </div>
-        </div>
       </div>
 
-      {/* Recommendations */}
-      <div className="border border-border-muted bg-surface-container-lowest">
-        <div className="bg-surface-container-high p-3 border-b border-border-muted">
-          <h3 className="font-label-caps text-label-caps text-primary">
-            {">"} AI_RECOMMENDATIONS
-          </h3>
+      {/* Live Event Stream */}
+      <div className="flex-1 overflow-y-auto border border-border-muted bg-surface-slate relative">
+        <div className="absolute inset-0 p-4 font-code-sm text-code-sm flex flex-col gap-3">
+          {events.length === 0 ? (
+            <div className="text-text-muted">WAITING FOR PIPELINE EXECUTION...</div>
+          ) : (
+            <AnimatePresence initial={false}>
+              {events.map((evt) => (
+                <motion.div
+                  key={evt.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex flex-col gap-1 border-l-2 pl-3 pb-2"
+                  style={{ borderColor: "var(--color-border-muted)" }}
+                >
+                  <div className="flex justify-between items-start">
+                    <span className="text-text-muted text-[10px]">
+                      {new Date(evt.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 })}
+                    </span>
+                    {evt.duration !== undefined && (
+                      <span className="text-text-muted text-[10px] bg-surface-variant px-1 border border-border-muted">
+                        {evt.duration}ms
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className={`px-1 text-[10px] uppercase border ${getStatusBorder(evt.status)} ${getStatusColor(evt.status)}`}>
+                      [{evt.stage}]
+                    </span>
+                  </div>
+                  
+                  <div className={`break-words ${getStatusColor(evt.status)}`}>
+                    {">"} {evt.message}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
         </div>
-        <ul className="p-0 m-0 divide-y divide-border-muted">
-          <li className="p-4 hover:bg-surface-slate cursor-pointer group">
-            <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-text-muted group-hover:text-terminal-lime text-base mt-0.5">
-                memory
-              </span>
-              <div>
-                <p className="font-code-sm text-code-sm text-primary mb-1">
-                  Re-route processing power to Cluster Alpha.
-                </p>
-                <span className="font-code-sm text-code-sm text-text-muted text-[10px]">
-                  IMPACT: +14% EFFICIENCY
-                </span>
-              </div>
-            </div>
-          </li>
-          <li className="p-4 hover:bg-surface-slate cursor-pointer group">
-            <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-text-muted group-hover:text-terminal-lime text-base mt-0.5">
-                security
-              </span>
-              <div>
-                <p className="font-code-sm text-code-sm text-primary mb-1">
-                  Initiate deep scan on external subroutines.
-                </p>
-                <span className="font-code-sm text-code-sm text-text-muted text-[10px]">
-                  IMPACT: RISK MITIGATION
-                </span>
-              </div>
-            </div>
-          </li>
-        </ul>
       </div>
     </aside>
   );
