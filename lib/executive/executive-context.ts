@@ -27,7 +27,7 @@ Organization: ${profile.organization}
 === MISSION CONTEXT ===
 Focus Areas: ${context.focus.join(", ")}
 Goals: ${context.goals.join(", ")}
-Risk Tolerance: ${context.riskTolerance}
+Risk Tolerance: ${profile.riskTolerance}
 `.trim();
   }
 }

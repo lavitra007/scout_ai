@@ -1,7 +1,8 @@
 import { PipelineState } from "@/types/pipeline";
 import { Mission } from "@/types/mission";
 import { RankedSignal } from "@/types/ranked-signal";
-import { ScoutProfileService } from "@/lib/profile/service";
+import { buildMissionContext } from "@/lib/profile/profile-service";
+import { loadProfile } from "@/lib/profile/profile-storage";
 import { MissionRouter } from "@/lib/orchestrator/mission-router";
 import { KnowledgeEngine } from "@/lib/knowledge/knowledge-engine";
 import { SignalEngine } from "@/lib/signals/signal-engine";
@@ -15,7 +16,6 @@ import { executionMonitor } from "@/lib/monitor/execution-monitor";
 export type PipelineCallback = (state: PipelineState, progress?: number) => void;
 
 export class PipelineRunner {
-  private profileService: ScoutProfileService;
   private orchestrator: MissionRouter;
   private knowledgeEngine: KnowledgeEngine;
   private signalEngine: SignalEngine;
@@ -23,7 +23,6 @@ export class PipelineRunner {
   private missionEngine: MissionEngine;
 
   constructor() {
-    this.profileService = new ScoutProfileService();
     this.orchestrator = new MissionRouter();
     this.knowledgeEngine = new KnowledgeEngine();
     this.signalEngine = new SignalEngine();
@@ -46,7 +45,7 @@ export class PipelineRunner {
       // 1. Fetch Profile
       ExecutionLogger.log("PROFILE", "RUNNING", PipelineMessages.PROFILE_LOAD);
       const profileTime = Date.now();
-      const profile = this.profileService.getProfile();
+      const profile = loadProfile();
       if (!profile) {
         throw new Error("No ScoutProfile found. User must complete onboarding.");
       }
@@ -56,13 +55,7 @@ export class PipelineRunner {
       // 2. Build Mission Context
       ExecutionLogger.log("MISSION_CONTEXT", "RUNNING", PipelineMessages.MISSION_CONTEXT);
       const ctxTime = Date.now();
-      const context: MissionContext = {
-        id: `ctx_${Date.now()}`,
-        focus: profile.interests,
-        goals: profile.goals,
-        priority: "HIGH",
-        riskTolerance: "MEDIUM"
-      };
+      const context = buildMissionContext(profile);
       ExecutionLogger.log("MISSION_CONTEXT", "SUCCESS", "Context vectors computed.", undefined, Date.now() - ctxTime);
       notify("MISSION_CONTEXT_READY");
 
@@ -71,10 +64,10 @@ export class PipelineRunner {
       notify("INTELLIGENCE_RUNNING");
       const orchTime = Date.now();
       const orchestrationResult = await this.orchestrator.executeMission(context);
-      
+
       // We could log specific tools used if we wanted, let's just log Orchestrator complete
       ExecutionLogger.log("ORCHESTRATOR", "SUCCESS", `Retrieved ${orchestrationResult.knowledge.length} items from MCP.`, undefined, Date.now() - orchTime);
-      
+
       if (orchestrationResult.knowledge.length === 0) {
         console.warn("Orchestrator returned zero knowledge items. Pipeline continuing with empty data.");
       }
@@ -83,7 +76,7 @@ export class PipelineRunner {
       ExecutionLogger.log("KNOWLEDGE", "RUNNING", PipelineMessages.KNOWLEDGE_START);
       const knowTime = Date.now();
       const graph = this.knowledgeEngine.buildKnowledgeGraph(orchestrationResult.knowledge);
-      ExecutionLogger.log("KNOWLEDGE", "SUCCESS", `Graph constructed with ${graph.entities.length} entities.`, undefined, Date.now() - knowTime);
+      ExecutionLogger.log("KNOWLEDGE", "SUCCESS", `Graph constructed with ${graph.nodes?.length || 0} entities.`, undefined, Date.now() - knowTime);
       notify("KNOWLEDGE_READY");
 
       // 5. Signal Engine (Extraction)

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { RankedSignal } from "@/types/ranked-signal";
-import { useProfile } from "@/lib/profile/context";
+import { useProfile } from "@/lib/profile/profile-context";
 
 interface SignalBreakdownProps {
   rankedSignal: RankedSignal;

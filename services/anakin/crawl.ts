@@ -1,19 +1,27 @@
 /**
- * MCP Service wrapper for crawl
+ * Live Anakin API wrapper for crawl
  */
 export async function executeCrawl(domain: string, maxDepth: number): Promise<unknown> {
-  return [
-    {
-      title: `Crawled Page 1 from ${domain}`,
-      content: `Deep crawl payload (Depth 1 of ${maxDepth}) via Anakin MCP crawl tool.`,
-      url: `https://${domain}/page-1`,
-      source: domain,
+  const apiKey = process.env.ANAKIN_API_KEY;
+  if (!apiKey) throw new Error("ANAKIN_API_KEY is missing");
+
+  const response = await fetch("https://api.anakin.io/v1/crawl/submit-crawl-job", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-Key": apiKey,
     },
-    {
-      title: `Crawled Page 2 from ${domain}`,
-      content: `Deep crawl payload (Depth 1 of ${maxDepth}) via Anakin MCP crawl tool.`,
-      url: `https://${domain}/page-2`,
-      source: domain,
-    }
-  ];
+    body: JSON.stringify({
+      url: `https://${domain}`,
+      max_depth: maxDepth
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Anakin Crawl API failed: ${response.status} - ${errorText}`);
+  }
+
+  const result = await response.json();
+  return result.data || result;
 }

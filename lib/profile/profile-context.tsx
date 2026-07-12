@@ -1,13 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import { Profile } from "@/types/profile";
-import {
-  loadProfile,
-  updateProfile,
-  resetProfile,
-} from "./profile-storage";
+import { loadProfile, updateProfile, resetProfile } from "./profile-storage";
 
 interface ProfileContextType {
   profile: Profile | null;
@@ -21,29 +16,22 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
+    let mounted = true;
+
     const initProfile = () => {
-      const existing = loadProfile();
-      if (!existing) {
-        setProfile(null);
-        if (pathname !== "/onboarding" && pathname !== "/landing") {
-          router.push("/onboarding");
-        }
-      } else {
-        setProfile(existing);
-        // If they are on the onboarding page but have a profile, send them to the operations center.
-        if (pathname === "/onboarding") {
-           router.push("/");
-        }
+      const localProfile = loadProfile();
+      if (mounted) {
+        setProfile(localProfile || null);
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     initProfile();
-  }, [pathname, router]);
+
+    return () => { mounted = false; };
+  }, []);
 
   const update = (updates: Partial<Profile>) => {
     const newProfile = updateProfile(updates);

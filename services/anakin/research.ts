@@ -1,12 +1,26 @@
 /**
- * MCP Service wrapper for agentic_search
+ * Live Anakin API wrapper for agentic_search
  */
 export async function executeAgenticSearch(query: string): Promise<unknown> {
-  return {
-    title: `Agentic Research Report on: ${query}`,
-    content: "Deep, multi-source synthetic research generated via Anakin MCP agentic_search.",
-    url: "https://example.com/agentic-research",
-    source: "Anakin Agentic Search",
-    confidence: 0.95
-  };
+  const apiKey = process.env.ANAKIN_API_KEY;
+  if (!apiKey) throw new Error("ANAKIN_API_KEY is missing");
+
+  const response = await fetch("https://api.anakin.io/v1/agentic-search/submit-search", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-Key": apiKey,
+    },
+    body: JSON.stringify({
+      query: query
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Anakin Research API failed: ${response.status} - ${errorText}`);
+  }
+
+  const result = await response.json();
+  return result.data || result;
 }

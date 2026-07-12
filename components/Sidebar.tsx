@@ -1,9 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 export function Sidebar() {
+  const pathname = usePathname();
+
+  const getLinkClasses = (path: string) => {
+    const isActive = pathname === path;
+    return `flex items-center gap-3 px-container-padding py-3 transition-all duration-150 ease-in-out border-l-2 font-label-caps text-label-caps ${
+      isActive
+        ? "bg-surface-variant text-terminal-lime border-terminal-lime"
+        : "text-text-muted border-transparent hover:bg-surface-container-high hover:text-terminal-lime"
+    }`;
+  };
+
   return (
     <nav className="fixed left-0 h-screen w-[280px] bg-background border-r border-border-muted flex flex-col z-50">
       {/* Header */}
@@ -32,40 +43,26 @@ export function Sidebar() {
       {/* Main Tabs */}
       <div className="flex-1 py-4 overflow-y-auto">
         <ul className="flex flex-col space-y-1">
-          {/* Active Tab */}
           <li>
-            <Link
-              href="/"
-              className="flex items-center gap-3 px-container-padding py-3 bg-surface-variant text-terminal-lime border-l-2 border-terminal-lime transition-all duration-150 ease-in-out font-label-caps text-label-caps"
-            >
+            <Link href="/" className={getLinkClasses("/")}>
               <span className="material-symbols-outlined">radar</span>
               Intelligence Feed
             </Link>
           </li>
-          {/* Inactive Tabs */}
           <li>
-            <Link
-              href="#"
-              className="flex items-center gap-3 px-container-padding py-3 text-text-muted hover:bg-surface-container-high hover:text-terminal-lime transition-all duration-150 ease-in-out border-l-2 border-transparent font-label-caps text-label-caps"
-            >
+            <Link href="/protocols" className={getLinkClasses("/protocols")}>
               <span className="material-symbols-outlined">terminal</span>
               Saved Protocols
             </Link>
           </li>
           <li>
-            <Link
-              href="#"
-              className="flex items-center gap-3 px-container-padding py-3 text-text-muted hover:bg-surface-container-high hover:text-terminal-lime transition-all duration-150 ease-in-out border-l-2 border-transparent font-label-caps text-label-caps"
-            >
+            <Link href="/settings" className={getLinkClasses("/settings")}>
               <span className="material-symbols-outlined">settings</span>
               System Settings
             </Link>
           </li>
           <li>
-            <Link
-              href="/onboarding"
-              className="flex items-center gap-3 px-container-padding py-3 text-text-muted hover:bg-surface-container-high hover:text-terminal-lime transition-all duration-150 ease-in-out border-l-2 border-transparent font-label-caps text-label-caps"
-            >
+            <Link href="/onboarding" className={getLinkClasses("/onboarding")}>
               <span className="material-symbols-outlined">admin_panel_settings</span>
               Mission Profile
             </Link>
@@ -78,8 +75,10 @@ export function Sidebar() {
         <ul className="flex flex-col space-y-1">
           <li>
             <Link
-              href="#"
-              className="flex items-center gap-3 px-4 py-2 text-text-muted hover:text-terminal-lime transition-colors font-code-sm text-code-sm"
+              href="/status"
+              className={`flex items-center gap-3 px-4 py-2 font-code-sm text-code-sm transition-colors ${
+                pathname === "/status" ? "text-terminal-lime" : "text-text-muted hover:text-terminal-lime"
+              }`}
             >
               <span className="material-symbols-outlined text-sm">analytics</span>
               System Status
@@ -87,8 +86,10 @@ export function Sidebar() {
           </li>
           <li>
             <Link
-              href="#"
-              className="flex items-center gap-3 px-4 py-2 text-text-muted hover:text-terminal-lime transition-colors font-code-sm text-code-sm"
+              href="/latency"
+              className={`flex items-center gap-3 px-4 py-2 font-code-sm text-code-sm transition-colors ${
+                pathname === "/latency" ? "text-terminal-lime" : "text-text-muted hover:text-terminal-lime"
+              }`}
             >
               <span className="material-symbols-outlined text-sm">speed</span>
               Node Latency

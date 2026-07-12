@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
-
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { executionMonitor } from "@/lib/monitor/execution-monitor";
@@ -38,7 +36,7 @@ export function RightPanel() {
 
   return (
     <aside className="w-[360px] overflow-y-auto p-container-padding bg-background border-l border-border-muted flex flex-col h-full">
-      
+
       {/* Execution Console Header */}
       <div className="border border-border-muted mb-4 bg-surface-container-lowest shrink-0">
         <div className="bg-surface-container-high p-3 border-b border-border-muted flex justify-between items-center">
@@ -77,13 +75,13 @@ export function RightPanel() {
                       </span>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <span className={`px-1 text-[10px] uppercase border ${getStatusBorder(evt.status)} ${getStatusColor(evt.status)}`}>
                       [{evt.stage}]
                     </span>
                   </div>
-                  
+
                   <div className={`break-words ${getStatusColor(evt.status)}`}>
                     {">"} {evt.message}
                   </div>
