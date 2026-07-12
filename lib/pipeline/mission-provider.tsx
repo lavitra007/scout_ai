@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from "react";
 import { Mission } from "@/types/mission";
+import { RankedSignal } from "@/types/ranked-signal";
 import { PipelineState } from "@/types/pipeline";
 import { ExecutiveBrief } from "@/types/executive-brief";
 import { scoutPipeline } from "./pipeline";
@@ -11,6 +12,7 @@ import { MissionContext as ProfileMissionContext } from "@/types/profile";
 
 interface MissionContextType {
   missions: Mission[];
+  rankedSignals: RankedSignal[];
   loading: boolean;
   pipelineState: PipelineState;
   lastUpdated: string | null;
@@ -22,6 +24,7 @@ interface MissionContextType {
   executiveError: Record<string, string | null>;
   executiveBriefs: Record<string, ExecutiveBrief>;
   loadExecutiveBrief: (missionId: string) => Promise<void>;
+  getExplainabilityContext: (missionId: string) => RankedSignal | undefined;
 }
 
 const MissionContext = createContext<MissionContextType | undefined>(undefined);
@@ -31,6 +34,7 @@ export function MissionProvider({ children }: { children: ReactNode }) {
   
   // Pipeline State
   const [missions, setMissions] = useState<Mission[]>([]);
+  const [rankedSignals, setRankedSignals] = useState<RankedSignal[]>([]);
   const [loading, setLoading] = useState(true);
   const [pipelineState, setPipelineState] = useState<PipelineState>("IDLE");
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -49,11 +53,12 @@ export function MissionProvider({ children }: { children: ReactNode }) {
     setError(null);
     
     try {
-      const generatedMissions = await scoutPipeline.run((state) => {
+      const result = await scoutPipeline.run((state) => {
         setPipelineState(state);
       });
       
-      setMissions(generatedMissions);
+      setMissions(result.missions);
+      setRankedSignals(result.rankedSignals);
       setLastUpdated(new Date().toISOString());
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred during pipeline execution.");
@@ -105,6 +110,13 @@ export function MissionProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const getExplainabilityContext = (missionId: string): RankedSignal | undefined => {
+    // The mission ID is generated as `mission_${signal.id}`
+    // We can extract the signal ID or just search the rankedSignals array
+    const signalId = missionId.replace('mission_', '');
+    return rankedSignals.find(s => s.id === signalId || `mission_${s.id}` === missionId);
+  };
+
   // Automatically run the pipeline when the provider mounts and profile is ready
   useEffect(() => {
     if (profile) {
@@ -118,6 +130,7 @@ export function MissionProvider({ children }: { children: ReactNode }) {
     <MissionContext.Provider
       value={{
         missions,
+        rankedSignals,
         loading,
         pipelineState,
         lastUpdated,
@@ -126,7 +139,8 @@ export function MissionProvider({ children }: { children: ReactNode }) {
         executiveLoading,
         executiveError,
         executiveBriefs,
-        loadExecutiveBrief
+        loadExecutiveBrief,
+        getExplainabilityContext
       }}
     >
       {children}

@@ -1,5 +1,6 @@
 import { PipelineState } from "@/types/pipeline";
 import { Mission } from "@/types/mission";
+import { RankedSignal } from "@/types/ranked-signal";
 import { ScoutProfileService } from "@/lib/profile/service";
 import { MissionRouter } from "@/lib/orchestrator/mission-router";
 import { KnowledgeEngine } from "@/lib/knowledge/knowledge-engine";
@@ -33,7 +34,7 @@ export class PipelineRunner {
   /**
    * Executes the full end-to-end intelligence pipeline.
    */
-  public async execute(onStateChange?: PipelineCallback): Promise<Mission[]> {
+  public async execute(onStateChange?: PipelineCallback): Promise<{ missions: Mission[], rankedSignals: RankedSignal[] }> {
     const notify = (state: PipelineState) => {
       if (onStateChange) onStateChange(state);
     };
@@ -106,7 +107,7 @@ export class PipelineRunner {
       notify("MISSIONS_READY");
 
       ExecutionLogger.log("COMPLETE", "SUCCESS", PipelineMessages.COMPLETE);
-      return missions;
+      return { missions, rankedSignals };
 
     } catch (error) {
       ExecutionLogger.log("ERROR", "ERROR", error instanceof Error ? error.message : "Fatal pipeline exception.");

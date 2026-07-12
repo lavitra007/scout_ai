@@ -7,9 +7,17 @@ import { useMissions } from "@/lib/pipeline/mission-provider";
 import { useEffect } from "react";
 import { ExecutiveLoading } from "@/components/mission/ExecutiveLoading";
 import { ExecutiveBrief } from "@/components/mission/ExecutiveBrief";
+import { DecisionTrace } from "@/components/mission/DecisionTrace";
 
 export default function MissionDetailPage({ params }: { params: { id: string } }) {
-  const { missions, loadExecutiveBrief, executiveLoading, executiveBriefs, executiveError } = useMissions();
+  const { 
+    missions, 
+    loadExecutiveBrief, 
+    executiveLoading, 
+    executiveBriefs, 
+    executiveError,
+    getExplainabilityContext 
+  } = useMissions();
   
   const mission = missions.find(m => m.id === params.id);
   
@@ -31,6 +39,8 @@ export default function MissionDetailPage({ params }: { params: { id: string } }
   const isLoading = executiveLoading[mission.id];
   const brief = executiveBriefs[mission.id];
   const error = executiveError[mission.id];
+  const explainabilityContext = getExplainabilityContext(mission.id);
+
   return (
     <div className="bg-background text-on-background font-body-base antialiased h-screen overflow-hidden flex">
       <Sidebar />
@@ -117,6 +127,12 @@ export default function MissionDetailPage({ params }: { params: { id: string } }
                 </div>
               </section>
             )}
+
+            {/* Explainability / Deterministic Trace */}
+            <DecisionTrace 
+              mission={mission} 
+              rankedSignal={explainabilityContext} 
+            />
 
             {/* Signal Evolution (Timeline) */}
             <section className="border border-border-muted bg-surface-slate p-6">
