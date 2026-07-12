@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+/npm-debug.log*
+/yarn-debug.log*
+/yarn-error.log*
+/pnpm-debug.log*
+.pnpm-store/
+
+# Next.js Build Output
+.next/
+out/
+build/
+dist/
+
+# Environment Variables & Secrets (CRITICAL for security)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+.env*.local
+
+# System Files
+.DS_Store
+Thumbs.db
+*.log
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Stitch exports
+stitch_scout_ai_opportunity_intelligence.zip
+stitch-screens/
+download-screens.js
+
+# Keep environment template
+!.env.example
+
+# TypeScript
+*.tsbuildinfo

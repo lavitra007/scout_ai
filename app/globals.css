@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: theme('colors.background');
+    background-image: linear-gradient(theme('colors.border-muted') 1px, transparent 1px),
+                      linear-gradient(90deg, theme('colors.border-muted') 1px, transparent 1px);
+    background-size: theme('spacing.grid-unit') theme('spacing.grid-unit');
+    background-position: center center;
+    color: theme('colors.on-background');
+  }
+
+  /* Custom Scrollbar from Stitch Design */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #000;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: theme('colors.surface-variant');
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.terminal-lime');
+  }
+}
+
+@layer utilities {
+  .crt-glow {
+    text-shadow: 0 0 10px rgba(204, 255, 0, 0.5);
+  }
+  
+  .crt-glow-box {
+    box-shadow: 0 0 20px rgba(204,255,0,0.3);
+  }
+  
+  .crt-glow-box:hover {
+    box-shadow: 0 0 30px rgba(204,255,0,0.5);
+  }
+
+  .pulse-node {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
