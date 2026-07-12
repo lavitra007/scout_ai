@@ -3,8 +3,34 @@
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
 import { TopNav } from "@/components/TopNav";
+import { useMissions } from "@/lib/pipeline/mission-provider";
+import { useEffect } from "react";
+import { ExecutiveLoading } from "@/components/mission/ExecutiveLoading";
+import { ExecutiveBrief } from "@/components/mission/ExecutiveBrief";
 
-export default function MissionDetailPage() {
+export default function MissionDetailPage({ params }: { params: { id: string } }) {
+  const { missions, loadExecutiveBrief, executiveLoading, executiveBriefs, executiveError } = useMissions();
+  
+  const mission = missions.find(m => m.id === params.id);
+  
+  useEffect(() => {
+    if (mission && (mission.priority === "CRITICAL" || mission.priority === "HIGH")) {
+      loadExecutiveBrief(mission.id);
+    }
+  }, [mission]);
+
+  if (!mission) {
+    return (
+      <div className="bg-background text-on-background font-body-base antialiased h-screen flex items-center justify-center">
+        <span className="font-code-sm text-text-muted">MISSION_NOT_FOUND</span>
+      </div>
+    );
+  }
+
+  const isExecutiveTarget = mission.priority === "CRITICAL" || mission.priority === "HIGH";
+  const isLoading = executiveLoading[mission.id];
+  const brief = executiveBriefs[mission.id];
+  const error = executiveError[mission.id];
   return (
     <div className="bg-background text-on-background font-body-base antialiased h-screen overflow-hidden flex">
       <Sidebar />
@@ -30,26 +56,26 @@ export default function MissionDetailPage() {
           {/* Title & Meta */}
           <div className="flex flex-col gap-4">
             <h1 className="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary uppercase break-words">
-              Anomalous Data Surge Detected in Sector 7 Grid
+              {mission.title}
             </h1>
             <div className="flex flex-wrap items-center gap-4 font-code-sm text-code-sm text-terminal-lime uppercase">
               <div className="flex items-center gap-2 px-3 py-1 bg-surface-variant border border-border-muted">
                 <span className="material-symbols-outlined text-[16px]">
                   schedule
                 </span>
-                Synthesized Today 08:42 AM
+                Synthesized {new Date(mission.createdAt).toLocaleDateString()} {new Date(mission.createdAt).toLocaleTimeString()}
               </div>
               <div className="flex items-center gap-2 px-3 py-1 bg-surface-variant border border-terminal-lime text-terminal-lime">
                 <span className="material-symbols-outlined text-[16px]">
                   verified
                 </span>
-                Confidence: 98.4%
+                Confidence: {Math.round(mission.confidence * 100)}%
               </div>
               <div className="flex items-center gap-2 px-3 py-1 bg-surface-variant border border-border-muted text-text-muted">
                 <span className="material-symbols-outlined text-[16px]">
                   dns
                 </span>
-                Source: Multi-Node Aggregation
+                Source: {mission.sources.length > 0 ? `${mission.sources.length} Data Nodes` : "Internal Aggregation"}
               </div>
             </div>
           </div>
@@ -59,21 +85,38 @@ export default function MissionDetailPage() {
         <div className="flex-1 p-container-padding max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-6 pb-section-gap pt-6 mx-auto">
           {/* Left Column (Main Content) */}
           <div className="lg:col-span-8 flex flex-col gap-8">
-            {/* Executive Summary */}
-            <section className="border border-border-muted bg-surface-slate p-6">
-              <h2 className="font-title-sm text-title-sm text-primary uppercase mb-4 border-b border-border-muted pb-2 flex items-center gap-2">
-                <span className="material-symbols-outlined text-terminal-lime">
-                  notes
-                </span>
-                Executive Summary
-              </h2>
-              <p className="font-body-base text-body-base text-text-body mb-4">
-                Traffic patterns indicate a coordinated extraction protocol originating from unknown sub-nodes. Projected system degradation if unmitigated within current cycle. This development significantly outpaces current industry projections and suggests an unannounced breakthrough in localized hardware acceleration by a major player.
-              </p>
-              <p className="font-body-base text-body-base text-text-body">
-                The implications for real-time autonomous systems, particularly in hostile or high-interference environments, are profound. The signal cluster points towards a unified deployment strategy currently rolling out across tier-2 infrastructure nodes.
-              </p>
-            </section>
+            
+            {/* Dynamic Executive Intelligence Block */}
+            {isExecutiveTarget ? (
+              <>
+                {isLoading && <ExecutiveLoading />}
+                {error && (
+                  <div className="border border-error/50 bg-error-container/10 p-4 font-code-sm text-error">
+                    [ERROR] {error}
+                  </div>
+                )}
+                {brief && !isLoading && <ExecutiveBrief brief={brief} />}
+              </>
+            ) : (
+              /* Standard Mission Detail (For Medium/Low priority) */
+              <section className="border border-border-muted bg-surface-slate p-6">
+                <h2 className="font-title-sm text-title-sm text-primary uppercase mb-4 border-b border-border-muted pb-2 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-terminal-lime">
+                    notes
+                  </span>
+                  Mission Summary
+                </h2>
+                <p className="font-body-base text-body-base text-text-body mb-4">
+                  {mission.summary}
+                </p>
+                <div className="mt-6">
+                  <h4 className="font-label-caps text-label-caps text-text-muted mb-2">WHY THIS MATTERS</h4>
+                  <p className="font-body-base text-body-base text-text-body border-l-2 border-border-muted pl-4">
+                    {mission.whyRelevant}
+                  </p>
+                </div>
+              </section>
+            )}
 
             {/* Signal Evolution (Timeline) */}
             <section className="border border-border-muted bg-surface-slate p-6">
@@ -138,70 +181,45 @@ export default function MissionDetailPage() {
                 Suggested Strategic Action
               </h3>
               <p className="font-body-base text-body-base text-on-surface mb-6">
-                Immediate reconfiguration of local processing protocols is recommended to maintain parity. Initiate shadow-node deployment sequence.
+                {mission.recommendedAction}
               </p>
-              <button className="w-full bg-terminal-lime text-background font-label-caps text-label-caps uppercase py-3 px-4 hover:bg-background hover:text-terminal-lime hover:border hover:border-terminal-lime transition-all duration-150 ease-in-out border border-transparent">
-                {">"} INITIATE PROTOCOL OMEGA
-              </button>
+              {!isExecutiveTarget && (
+                <button className="w-full bg-terminal-lime text-background font-label-caps text-label-caps uppercase py-3 px-4 hover:bg-background hover:text-terminal-lime hover:border hover:border-terminal-lime transition-all duration-150 ease-in-out border border-transparent">
+                  {">"} EXECUTE STANDARD RESPONSE
+                </button>
+              )}
               <button className="w-full mt-3 bg-background text-on-surface font-label-caps text-label-caps uppercase py-3 px-4 border border-border-muted hover:border-on-surface transition-all duration-150 ease-in-out">
                 {">"} ARCHIVE SIGNAL
               </button>
             </section>
 
-            {/* Corroborating Sources */}
+            {/* Related Entities */}
             <section className="border border-border-muted bg-surface-slate flex flex-col">
               <div className="p-4 border-b border-border-muted font-label-caps text-label-caps text-text-muted uppercase">
-                Corroborating Sources (3)
+                Detected Entities ({mission.relatedEntities.length})
               </div>
               <div className="flex flex-col">
-                <a
-                  href="#"
-                  className="p-4 border-b border-border-muted hover:bg-surface-container-high transition-colors group flex items-start gap-3"
-                >
-                  <span className="material-symbols-outlined text-text-muted group-hover:text-terminal-lime transition-colors">
-                    feed
-                  </span>
-                  <div>
-                    <div className="font-code-sm text-code-sm text-text-muted mb-1">
-                      SIGINT-Alpha-99
-                    </div>
-                    <div className="font-body-base text-body-base text-on-surface group-hover:text-terminal-lime transition-colors">
-                      Hardware Manifest Intercept
-                    </div>
-                  </div>
-                </a>
-                <a
-                  href="#"
-                  className="p-4 border-b border-border-muted hover:bg-surface-container-high transition-colors group flex items-start gap-3"
-                >
-                  <span className="material-symbols-outlined text-text-muted group-hover:text-terminal-lime transition-colors">
-                    satellite_alt
-                  </span>
-                  <div>
-                    <div className="font-code-sm text-code-sm text-text-muted mb-1">
-                      GEO-Sat-Telemetry
-                    </div>
-                    <div className="font-body-base text-body-base text-on-surface group-hover:text-terminal-lime transition-colors">
-                      Thermal Signature Spikes - Data Centers
+                {mission.relatedEntities.map((entity, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 border-b border-border-muted hover:bg-surface-container-high transition-colors group flex items-start gap-3"
+                  >
+                    <span className="material-symbols-outlined text-text-muted group-hover:text-terminal-lime transition-colors">
+                      category
+                    </span>
+                    <div>
+                      <div className="font-code-sm text-code-sm text-text-muted mb-1">
+                        TYPE: {entity.type}
+                      </div>
+                      <div className="font-body-base text-body-base text-on-surface group-hover:text-terminal-lime transition-colors">
+                        {entity.name}
+                      </div>
                     </div>
                   </div>
-                </a>
-                <a
-                  href="#"
-                  className="p-4 hover:bg-surface-container-high transition-colors group flex items-start gap-3"
-                >
-                  <span className="material-symbols-outlined text-text-muted group-hover:text-terminal-lime transition-colors">
-                    code
-                  </span>
-                  <div>
-                    <div className="font-code-sm text-code-sm text-text-muted mb-1">
-                      DarkNet Forum Scrape
-                    </div>
-                    <div className="font-body-base text-body-base text-on-surface group-hover:text-terminal-lime transition-colors">
-                      Firmware Reverse Engineering Thread
-                    </div>
-                  </div>
-                </a>
+                ))}
+                {mission.relatedEntities.length === 0 && (
+                  <div className="p-4 font-code-sm text-text-muted">NO ENTITIES DETECTED.</div>
+                )}
               </div>
             </section>
 
