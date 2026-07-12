@@ -3,6 +3,7 @@
 Scout AI is an Opportunity Intelligence Platform. It continuously discovers information using Anakin Universal Crawl, converts websites into structured data using Wire API, reasons over the extracted information, and presents Opportunities, Threats, Trends, and Actions personalized to the user's profile.
 
 ## Tech Stack
+
 - Next.js 15 (App Router)
 - TypeScript
 - TailwindCSS
@@ -18,8 +19,9 @@ Scout AI is an Opportunity Intelligence Platform. It continuously discovers info
 3. Run `npm run dev` to start the development server.
 
 ## Architecture
-- `/app` - Next.js App Router pages and layouts
-- `/components` - React components (ui, layout, shared)
-- `/services` - Business logic and external API integrations (Anakin, AI, Database)
-- `/types` - Strict TypeScript interfaces (Anakin API schemas, Data models)
-- `/lib` - Utilities and constants
+
+- `/app` – Next.js App Router pages and layouts
+- `/components` – React components
+- `/services` – Business logic and Anakin integrations
+- `/types` – TypeScript models
+- `/lib` – Utilities and orchestration logic
