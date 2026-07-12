@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import { ProfileProvider } from "@/lib/profile/profile-context";
+import { MissionProvider } from "@/lib/pipeline/mission-provider";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -25,7 +26,9 @@ export default function RootLayout({
       </head>
       <body className={`${jetbrainsMono.variable} min-h-screen overflow-x-hidden font-body-base text-body-base antialiased`}>
         <ProfileProvider>
-          {children}
+          <MissionProvider>
+            {children}
+          </MissionProvider>
         </ProfileProvider>
       </body>
     </html>

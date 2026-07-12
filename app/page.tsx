@@ -4,39 +4,11 @@ import { Sidebar } from "@/components/Sidebar";
 import { TopNav } from "@/components/TopNav";
 import { IntelCard } from "@/components/IntelCard";
 import { RightPanel } from "@/components/RightPanel";
+import { useMissions } from "@/lib/pipeline/mission-provider";
+import { PipelineStateFormatter } from "@/lib/pipeline/pipeline-state";
 
 export default function Home() {
-  const intelData = [
-    {
-      id: "sig-001",
-      priority: "CRITICAL" as const,
-      time: "T-MINUS 02:14:00",
-      title: "Anomalous Data Surge Detected in Sector 7 Grid",
-      whyItMatters:
-        "Traffic patterns indicate a coordinated extraction protocol originating from unknown sub-nodes. Projected system degradation if unmitigated within current cycle.",
-      confidenceScore: 98.4,
-    },
-    {
-      id: "sig-002",
-      priority: "ELEVATED" as const,
-      time: "T-MINUS 05:42:11",
-      title: "Predictive Failure: Primary Cooling Array",
-      whyItMatters:
-        "Thermal thresholds nearing critical operational limits across secondary databanks.",
-      confidenceScore: 87.1,
-      image:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuAKLwfqGU-7iiltpJKwbpmH8zZwNV4rpOtRj2D-RzW56u1WFerfD6MhA-eFvwFnA4kBQmvNtk_PPpX-dXCtbA62z_rx0Goh5Zs0aMF2Mqwv_rG0fHFkHSRXVWOu_Pk-yLBegxUyohbUbC1ZE6aN8O91bMqky637Z2jajenaU3WnSNBOyrJ_FBi_PMW14rOr3GevOIJ4a47mrNwBmpSoi7t1Wz4dMlotqXAMvovjJffYNWSaE1GDyjvA5LHeG_jDWhbIlcvLlVKPI14",
-    },
-    {
-      id: "sig-003",
-      priority: "STANDARD" as const,
-      time: "T-MINUS 12:00:00",
-      title: "Routine Security Protocol Update Available",
-      whyItMatters: "",
-      confidenceScore: 99.9,
-      opacity: "opacity-75",
-    },
-  ];
+  const { missions, loading, pipelineState } = useMissions();
 
   return (
     <div className="bg-background text-on-background font-body-base antialiased h-screen overflow-hidden flex">
@@ -58,15 +30,44 @@ export default function Home() {
                 </p>
               </div>
               <div className="font-code-sm text-code-sm text-terminal-lime flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm">sync</span>
-                SYNCING...
+                {loading ? (
+                  <>
+                    <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                    {PipelineStateFormatter.getLoadingMessage(pipelineState)}
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                    SYNC_COMPLETE
+                  </>
+                )}
               </div>
             </div>
 
             <div className="space-y-6 pb-20">
-              {intelData.map((intel) => (
-                <IntelCard key={intel.id} {...intel} />
-              ))}
+              {loading && missions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-64 border border-border-muted border-dashed">
+                  <span className="material-symbols-outlined text-4xl text-terminal-lime mb-4 animate-spin">sync</span>
+                  <p className="font-code-sm text-text-muted">{PipelineStateFormatter.getLoadingMessage(pipelineState)}</p>
+                </div>
+              ) : missions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-64 border border-border-muted border-dashed">
+                  <p className="font-code-sm text-text-muted">NO MISSIONS DETECTED FOR CURRENT PROFILE.</p>
+                </div>
+              ) : (
+                missions.map((mission) => (
+                  <IntelCard 
+                    key={mission.id}
+                    id={mission.id}
+                    priority={mission.priority}
+                    time={new Date(mission.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    title={mission.title}
+                    whyItMatters={mission.whyRelevant}
+                    confidenceScore={Math.round(mission.confidence * 100)}
+                    opacity={mission.priority === "LOW" ? "opacity-75" : ""}
+                  />
+                ))
+              )}
             </div>
           </section>
 

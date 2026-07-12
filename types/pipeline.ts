@@ -1,0 +1,9 @@
+export type PipelineState = 
+  | "IDLE"
+  | "PROFILE_READY"
+  | "MISSION_CONTEXT_READY"
+  | "INTELLIGENCE_RUNNING"
+  | "KNOWLEDGE_READY"
+  | "SIGNALS_READY"
+  | "MISSIONS_READY"
+  | "FAILED";

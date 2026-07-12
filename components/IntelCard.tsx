@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 interface IntelCardProps {
   id: string;
-  priority: "CRITICAL" | "ELEVATED" | "STANDARD";
+  priority: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
   time: string;
   title: string;
   whyItMatters: string;
@@ -25,7 +25,7 @@ export function IntelCard({
   opacity,
 }: IntelCardProps) {
   const isCritical = priority === "CRITICAL";
-  const isElevated = priority === "ELEVATED";
+  const isElevated = priority === "HIGH";
 
   const priorityColor = isCritical
     ? "text-error"
@@ -67,7 +67,7 @@ export function IntelCard({
           <div>
             <h3
               className={`font-title-sm text-title-sm mb-4 ${
-                priority === "STANDARD" ? "text-text-muted" : "text-primary"
+                (priority === "MEDIUM" || priority === "LOW") ? "text-text-muted" : "text-primary"
               }`}
             >
               {title}
@@ -92,7 +92,7 @@ export function IntelCard({
             </span>
             <span
               className={`font-title-sm text-title-sm ${
-                priority === "STANDARD"
+                (priority === "MEDIUM" || priority === "LOW")
                   ? "text-text-muted"
                   : "text-terminal-lime"
               }`}
@@ -103,12 +103,12 @@ export function IntelCard({
           <Link href={`/mission/${id}`}>
             <button
               className={`bg-background px-4 py-2 font-label-caps text-label-caps transition-all border ${
-                priority === "STANDARD"
+                (priority === "MEDIUM" || priority === "LOW")
                   ? "text-text-muted border-border-muted hover:border-primary hover:text-primary"
                   : "text-primary border-border-muted hover:border-primary hover:text-primary"
               }`}
             >
-              {">"} {priority === "STANDARD" ? "EXECUTE UPDATE" : "ANALYZE IMPACT"}
+              {">"} {(priority === "MEDIUM" || priority === "LOW") ? "EXECUTE UPDATE" : "ANALYZE IMPACT"}
             </button>
           </Link>
         </div>
